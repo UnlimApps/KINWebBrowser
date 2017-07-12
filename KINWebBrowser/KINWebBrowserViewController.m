@@ -91,18 +91,8 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
 - (id)initWithConfiguration:(WKWebViewConfiguration *)configuration {
     self = [super init];
     if(self) {
-        if([WKWebView class]) {
-            if(configuration) {
-                self.wkWebView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration];
-            }
-            else {
-                self.wkWebView = [[WKWebView alloc] init];
-            }
-        }
-        else {
-            self.uiWebView = [[UIWebView alloc] init];
-        }
         
+        self.uiWebView = [[UIWebView alloc] init];
         self.actionButtonHidden = NO;
         self.showsURLInNavigationBar = NO;
         self.showsPageTitleInNavigationBar = YES;
@@ -224,26 +214,29 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
 #pragma mark - UIWebViewDelegate
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-    if(webView == self.uiWebView) {
-        
-        if(![self externalAppRequiredToOpenURL:request.URL]) {
-            self.uiWebViewCurrentURL = request.URL;
-            self.uiWebViewIsLoading = YES;
-            [self updateToolbarState];
-            
-            [self fakeProgressViewStartLoading];
-            
-            if([self.delegate respondsToSelector:@selector(webBrowser:didStartLoadingURL:)]) {
-                [self.delegate webBrowser:self didStartLoadingURL:request.URL];
+    if ([self.delegate respondsToSelector:@selector(webView:shouldStartLoadWithRequest:navigationType:)]) {
+        return [self.delegate webView:webView shouldStartLoadWithRequest:request navigationType:navigationType];
+    } else {
+        if(webView == self.uiWebView) {
+            if(![self externalAppRequiredToOpenURL:request.URL]) {
+                self.uiWebViewCurrentURL = request.URL;
+                self.uiWebViewIsLoading = YES;
+                [self updateToolbarState];
+                
+                [self fakeProgressViewStartLoading];
+                
+                if([self.delegate respondsToSelector:@selector(webBrowser:didStartLoadingURL:)]) {
+                    [self.delegate webBrowser:self didStartLoadingURL:request.URL];
+                }
+                return YES;
             }
-            return YES;
+            else {
+                [self launchExternalAppWithURL:request.URL];
+                return NO;
+            }
         }
-        else {
-            [self launchExternalAppWithURL:request.URL];
-            return NO;
-        }
+        return NO;
     }
-    return NO;
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
@@ -405,7 +398,7 @@ static void *KINWebBrowserContext = &KINWebBrowserContext;
 }
 
 - (void)setupToolbarItems {
-    NSBundle *bundle = [NSBundle bundleForClass:[KINWebBrowserViewController class]];
+    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
     
     self.refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshButtonPressed:)];
     self.stopButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(stopButtonPressed:)];
