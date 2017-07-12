@@ -55,6 +55,7 @@
 - (void)webBrowser:(KINWebBrowserViewController *)webBrowser didFinishLoadingURL:(NSURL *)URL;
 - (void)webBrowser:(KINWebBrowserViewController *)webBrowser didFailToLoadURL:(NSURL *)URL error:(NSError *)error;
 - (void)webBrowserViewControllerWillDismiss:(KINWebBrowserViewController*)viewController;
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType;
 @end
 
 
@@ -136,4 +137,3 @@
 - (void)loadHTMLString:(NSString *)HTMLString;
 
 @end
-
